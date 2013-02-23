@@ -20,35 +20,33 @@ _IOC_TYPESHIFT = _IOC_NRSHIFT + _IOC_NRBITS
 _IOC_SIZESHIFT = _IOC_TYPESHIFT + _IOC_TYPEBITS
 _IOC_DIRSHIFT = _IOC_SIZESHIFT + _IOC_SIZEBITS
 
-_IOC_NONE = 0
-_IOC_WRITE = 1
-_IOC_READ = 2
+IOC_NONE = 0
+IOC_WRITE = 1
+IOC_READ = 2
 
-def _IOC(dir, type, nr, size):
+def IOC(dir, type, nr, size):
     assert dir <= _IOC_DIRMASK, dir
     assert type <= _IOC_TYPEMASK, type
     assert nr <= _IOC_NRMASK, nr
     assert size <= _IOC_SIZEMASK, size
     return (dir << _IOC_DIRSHIFT) | (type << _IOC_TYPESHIFT) | (nr << _IOC_NRSHIFT) | (size << _IOC_SIZESHIFT)
 
-# ctypes.sizeof fails on python integer (first failsafe of _IOC_TYPECHECK)
-# and size check has been moved to _IOC.
-def _IOC_TYPECHECK(t):
+def IOC_TYPECHECK(t):
     result = ctypes.sizeof(t)
     assert result <= _IOC_SIZEMASK, result
     return result
 
 def IO(type, nr):
-    return _IOC(_IOC_NONE, type, nr, 0)
+    return IOC(IOC_NONE, type, nr, 0)
 
 def IOR(type, nr, size):
-    return _IOC(_IOC_READ, type, nr, _IOC_TYPECHECK(size))
+    return IOC(IOC_READ, type, nr, IOC_TYPECHECK(size))
 
 def IOW(type, nr, size):
-    return _IOC(_IOC_WRITE, type, nr, _IOC_TYPECHECK(size))
+    return IOC(IOC_WRITE, type, nr, IOC_TYPECHECK(size))
 
 def IOWR(type, nr, size):
-    return _IOC(_IOC_READ | _IOC_WRITE, type, nr, _IOC_TYPECHECK(size))
+    return IOC(IOC_READ | IOC_WRITE, type, nr, IOC_TYPECHECK(size))
 
 def IOC_DIR(nr):
     return (nr >> _IOC_DIRSHIFT) & _IOC_DIRMASK
@@ -62,8 +60,39 @@ def IOC_NR(nr):
 def IOC_SIZE(nr):
     return (nr >> _IOC_SIZESHIFT) & _IOC_SIZEMASK
 
-IOC_IN = _IOC_WRITE << _IOC_DIRSHIFT
-IOC_OUT = _IOC_READ << _IOC_DIRSHIFT
-IOC_INOUT = (_IOC_WRITE | _IOC_READ) << _IOC_DIRSHIFT
+IOC_IN = IOC_WRITE << _IOC_DIRSHIFT
+IOC_OUT = IOC_READ << _IOC_DIRSHIFT
+IOC_INOUT = (IOC_WRITE | IOC_READ) << _IOC_DIRSHIFT
 IOCSIZE_MASK = _IOC_SIZEMASK << _IOC_SIZESHIFT
 IOCSIZE_SHIFT = _IOC_SIZESHIFT
+
+if __name__ == '__main__':
+    print 'Sanity checks...'
+    # hid.h
+    HID_MAX_DESCRIPTOR_SIZE = 4096
+
+    # hidraw.h
+    class hidraw_report_descriptor(ctypes.Structure):
+        _fields_ = [
+            ('size', ctypes.c_uint),
+            ('value', ctypes.c_ubyte * HID_MAX_DESCRIPTOR_SIZE),
+        ]
+
+    class hidraw_devinfo(ctypes.Structure):
+        _fields_ = [
+            ('bustype', ctypes.c_uint),
+            ('vendor', ctypes.c_short),
+            ('product', ctypes.c_short),
+        ]
+
+    HIDIOCGRDESCSIZE = IOR(ord('H'), 0x01, ctypes.c_int)
+    HIDIOCGRDESC = IOR(ord('H'), 0x02, hidraw_report_descriptor)
+    HIDIOCGRAWINFO = IOR(ord('H'), 0x03, hidraw_devinfo)
+    HIDIOCGRAWNAME = lambda len: IOC(IOC_READ, ord('H'), 0x04, len)
+    HIDIOCGRAWPHYS = lambda len: IOC(IOC_READ, ord('H'), 0x05, len)
+    HIDIOCSFEATURE = lambda len: IOC(IOC_WRITE|IOC_READ, ord('H'), 0x06, len)
+    HIDIOCGFEATURE = lambda len: IOC(IOC_WRITE|IOC_READ, ord('H'), 0x07, len)
+    HIDIOCGRAWNAME(0)
+    HIDIOCGRAWPHYS(1)
+    HIDIOCGRAWPHYS(_IOC_SIZEMASK)
+    HIDIOCGFEATURE(_IOC_SIZEMASK)
