@@ -1,0 +1,3 @@
+Pythonified linux asm-generic/ioctl.h .
+
+So you can replicate driver's code computing fcntl.ioctl's opt argument.
