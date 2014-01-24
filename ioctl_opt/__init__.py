@@ -67,7 +67,7 @@ IOCSIZE_MASK = _IOC_SIZEMASK << _IOC_SIZESHIFT
 IOCSIZE_SHIFT = _IOC_SIZESHIFT
 
 if __name__ == '__main__':
-    print 'Sanity checks...'
+    print('Sanity checks...')
     # hid.h
     HID_MAX_DESCRIPTOR_SIZE = 4096
 
