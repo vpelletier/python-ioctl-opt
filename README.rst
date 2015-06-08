@@ -4,7 +4,7 @@ So you can replicate driver's code computing fcntl.ioctl's opt argument.
 
 Example defining hidraw ioctls:
 
-::
+.. code:: python
 
   import ctypes
   from ioctl_opt import IOR, IOC, IOC_READ, IOC_WRITE
