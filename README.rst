@@ -2,7 +2,42 @@ Pythonified linux asm-generic/ioctl.h .
 
 So you can replicate driver's code computing fcntl.ioctl's opt argument.
 
-Example defining hidraw ioctls:
+For example, starting from the following IOCTL declaration (taken from `input.h`):
+
+.. code:: C
+
+  #include <sys/ioctl.h>
+  #define EVIOCGNAME(len) _IOC(_IOC_READ, 'E', 0x06, len) /* get device name */
+  
+you could write the following:
+
+.. code:: python
+
+  from ioctl_opt import IOC, IOC_READ
+  EVIOCGNAME = lambda len: IOC(IOC_READ, ord('E'), 0x06, len)
+
+The differences are minimal, and all come from python language or coding style:
+- macros/constants to use from `ioctl_opt` for not start with an underscore
+- defined macro becomes a callable (here a lambda, could be function)
+- `IOC`'s `nr` argument has to be an integer, so C's single-quote char becomes an `ord` call
+
+You may want to then write a pythonic function to conveniently access that ioctl:
+
+.. code:: python
+
+  import ctypes
+  import fcntl
+  
+  def getDeviceName(fd, length=1024):
+      buffer = bytearray(length)
+      actual_length = fcntl.ioctl(fd, EVIOCGNAME(length), (ctypes.c_char * length).from_buffer(buffer), True)
+      if actual_length < 0:
+          raise OSError(-actual_length)
+      return buffer[:actual_length]
+
+Here there is a catch, at least in python 2.7: for some reason, `fcntl.ioctl` `arg` argument refuses `bytearray` instances, so above code works around it by casting it into a `ctypes` char buffer, which is both a mutable buffer type and accepted by `fcntl.ioctl`. A `bytearray` buffer is still used to avoid returning an inconvenient `ctypes` instance to caller, which may be expecting a more regular python type as return value. This of course depends on how you intend to call or expose this in your code.
+
+More advanced example defining hidraw ioctls, requiring structures (for more on how structures are defined, check python's ctype documentation for your python version):
 
 .. code:: python
 
