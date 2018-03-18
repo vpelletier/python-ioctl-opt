@@ -1,8 +1,8 @@
-Pythonified linux asm-generic/ioctl.h .
+Pythonified linux ``asm-generic/ioctl.h`` .
 
-So you can replicate driver's code computing fcntl.ioctl's opt argument.
+So you can replicate driver's code computing ``fcntl.ioctl``'s ``opt`` argument.
 
-For example, starting from the following IOCTL declaration (taken from `input.h`):
+For example, starting from the following IOCTL declaration (taken from ``input.h``):
 
 .. code:: C
 
@@ -14,12 +14,14 @@ you could write the following:
 .. code:: python
 
   from ioctl_opt import IOC, IOC_READ
-  EVIOCGNAME = lambda len: IOC(IOC_READ, ord('E'), 0x06, len)
+  EVIOCGNAME = lambda length: IOC(IOC_READ, ord('E'), 0x06, length)
 
 The differences are minimal, and all come from python language or coding style:
-- macros/constants to use from `ioctl_opt` for not start with an underscore
+
+- macros/constants to use from ``ioctl_opt`` for not start with an underscore
 - defined macro becomes a callable (here a lambda, could be function)
-- `IOC`'s `nr` argument has to be an integer, so C's single-quote char becomes an `ord` call
+- ``IOC``'s ``nr`` argument has to be an integer, so C's single-quote char becomes an ``ord`` call
+- avoid shadowing built-in ``len`` function
 
 You may want to then write a pythonic function to conveniently access that ioctl:
 
@@ -35,7 +37,7 @@ You may want to then write a pythonic function to conveniently access that ioctl
           raise OSError(-actual_length)
       return buffer[:actual_length]
 
-Here there is a catch, at least in python 2.7: for some reason, `fcntl.ioctl` `arg` argument refuses `bytearray` instances, so above code works around it by casting it into a `ctypes` char buffer, which is both a mutable buffer type and accepted by `fcntl.ioctl`. A `bytearray` buffer is still used to avoid returning an inconvenient `ctypes` instance to caller, which may be expecting a more regular python type as return value. This of course depends on how you intend to call or expose this in your code.
+Here there is a catch, at least in python 2.7: for some reason, ``fcntl.ioctl``'s ``arg`` argument refuses ``bytearray`` instances, so above code works around it by casting it into a ``ctypes`` char buffer (by reference, so buffer content is not copied and all changes to the c_char instance will affect the ``bytearray`` object), which is both a mutable buffer type and accepted by ``fcntl.ioctl``. A ``bytearray`` buffer is still used to avoid returning an inconvenient ``ctypes`` instance to caller, which may be expecting a more regular python type as return value. This of course depends on how you intend to call or expose this in your code.
 
 More advanced example defining hidraw ioctls, requiring structures (for more on how structures are defined, check python's ctype documentation for your python version):
 
@@ -64,7 +66,7 @@ More advanced example defining hidraw ioctls, requiring structures (for more on 
   HIDIOCGRDESCSIZE = IOR(ord('H'), 0x01, ctypes.c_int)
   HIDIOCGRDESC = IOR(ord('H'), 0x02, hidraw_report_descriptor)
   HIDIOCGRAWINFO = IOR(ord('H'), 0x03, hidraw_devinfo)
-  HIDIOCGRAWNAME = lambda len: IOC(IOC_READ, ord('H'), 0x04, len)
-  HIDIOCGRAWPHYS = lambda len: IOC(IOC_READ, ord('H'), 0x05, len)
-  HIDIOCSFEATURE = lambda len: IOC(IOC_WRITE|IOC_READ, ord('H'), 0x06, len)
-  HIDIOCGFEATURE = lambda len: IOC(IOC_WRITE|IOC_READ, ord('H'), 0x07, len)
+  HIDIOCGRAWNAME = lambda length: IOC(IOC_READ, ord('H'), 0x04, length)
+  HIDIOCGRAWPHYS = lambda length: IOC(IOC_READ, ord('H'), 0x05, length)
+  HIDIOCSFEATURE = lambda length: IOC(IOC_WRITE|IOC_READ, ord('H'), 0x06, length)
+  HIDIOCGFEATURE = lambda length: IOC(IOC_WRITE|IOC_READ, ord('H'), 0x07, length)
