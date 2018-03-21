@@ -31,13 +31,13 @@ You may want to then write a pythonic function to conveniently access that ioctl
   import fcntl
   
   def getDeviceName(fd, length=1024):
-      buffer = bytearray(length)
-      actual_length = fcntl.ioctl(fd, EVIOCGNAME(length), (ctypes.c_char * length).from_buffer(buffer), True)
+      name = (ctypes.c_char * length)()
+      actual_length = fcntl.ioctl(fd, EVIOCGNAME(length), name, True)
       if actual_length < 0:
           raise OSError(-actual_length)
-      return buffer[:actual_length]
-
-Here there is a catch, at least in python 2.7: for some reason, ``fcntl.ioctl``'s ``arg`` argument refuses ``bytearray`` instances, so above code works around it by casting it into a ``ctypes`` char buffer (by reference, so buffer content is not copied and all changes to the c_char instance will affect the ``bytearray`` object), which is both a mutable buffer type and accepted by ``fcntl.ioctl``. A ``bytearray`` buffer is still used to avoid returning an inconvenient ``ctypes`` instance to caller, which may be expecting a more regular python type as return value. This of course depends on how you intend to call or expose this in your code.
+      if name[actual_length - 1] == b'\x00':
+          actual_length -= 1
+      return name[:actual_length]
 
 More advanced example defining hidraw ioctls, requiring structures (for more on how structures are defined, check python's ctype documentation for your python version):
 
