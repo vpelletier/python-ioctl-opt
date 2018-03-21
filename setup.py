@@ -4,7 +4,7 @@ setup(
     name='ioctl-opt',
     description="Functions to compute fnctl.ioctl's opt argument",
     keywords='ioctl',
-    version='1.2',
+    version='1.2.1',
     author='Vincent Pelletier',
     author_email='plr.vincent@gmail.com',
     url='http://github.com/vpelletier/python-ioctl-opt',
