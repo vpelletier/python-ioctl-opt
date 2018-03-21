@@ -1,7 +1,15 @@
 """
 Pythonified linux asm-generic/ioctl.h .
 
-"type" parameters expect ctypes-based types (ctypes.Structure subclasses, ...).
+Produce IOCTL command numbers from their individual components, simplifying
+C header conversion to python (keeping magic constants and differences to
+C code to a minimum).
+
+Common parameter meanings:
+    type (8-bits unsigned integer)
+        Driver-imposed ioctl number.
+    nr (8-bits unsigned integer)
+        Driver-imposed ioctl function number.
 """
 import ctypes
 
@@ -25,6 +33,13 @@ IOC_WRITE = 1
 IOC_READ = 2
 
 def IOC(dir, type, nr, size):
+    """
+    dir
+        One of IOC_NONE, IOC_WRITE, IOC_READ, or IOC_READ|IOC_WRITE.
+        Direction is from the application's point of view, not kernel's.
+    size (14-bits unsigned integer)
+        Size of the buffer passed to ioctl's "arg" argument.
+    """
     assert dir <= _IOC_DIRMASK, dir
     assert type <= _IOC_TYPEMASK, type
     assert nr <= _IOC_NRMASK, nr
@@ -32,32 +47,69 @@ def IOC(dir, type, nr, size):
     return (dir << _IOC_DIRSHIFT) | (type << _IOC_TYPESHIFT) | (nr << _IOC_NRSHIFT) | (size << _IOC_SIZESHIFT)
 
 def IOC_TYPECHECK(t):
+    """
+    Returns the size of given type, and check its suitability for use in an
+    ioctl command number.
+    """
     result = ctypes.sizeof(t)
     assert result <= _IOC_SIZEMASK, result
     return result
 
 def IO(type, nr):
+    """
+    An ioctl with no parameters.
+    """
     return IOC(IOC_NONE, type, nr, 0)
 
 def IOR(type, nr, size):
+    """
+    An ioctl with read parameters.
+
+    size (ctype type or instance)
+        Type/structure of the argument passed to ioctl's "arg" argument.
+    """
     return IOC(IOC_READ, type, nr, IOC_TYPECHECK(size))
 
 def IOW(type, nr, size):
+    """
+    An ioctl with write parameters.
+
+    size (ctype type or instance)
+        Type/structure of the argument passed to ioctl's "arg" argument.
+    """
     return IOC(IOC_WRITE, type, nr, IOC_TYPECHECK(size))
 
 def IOWR(type, nr, size):
+    """
+    An ioctl with both read an writes parameters.
+
+    size (ctype type or instance)
+        Type/structure of the argument passed to ioctl's "arg" argument.
+    """
     return IOC(IOC_READ | IOC_WRITE, type, nr, IOC_TYPECHECK(size))
 
 def IOC_DIR(nr):
+    """
+    Extract direction from an ioctl command number.
+    """
     return (nr >> _IOC_DIRSHIFT) & _IOC_DIRMASK
 
 def IOC_TYPE(nr):
+    """
+    Extract type from an ioctl command number.
+    """
     return (nr >> _IOC_TYPESHIFT) & _IOC_TYPEMASK
 
 def IOC_NR(nr):
+    """
+    Extract nr from an ioctl command number.
+    """
     return (nr >> _IOC_NRSHIFT) & _IOC_NRMASK
 
 def IOC_SIZE(nr):
+    """
+    Extract size from an ioctl command number.
+    """
     return (nr >> _IOC_SIZESHIFT) & _IOC_SIZEMASK
 
 IOC_IN = IOC_WRITE << _IOC_DIRSHIFT
