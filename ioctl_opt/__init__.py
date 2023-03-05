@@ -26,7 +26,9 @@ Common parameter meanings:
     nr (8-bits unsigned integer)
         Driver-imposed ioctl function number.
 """
+import array
 import ctypes
+import struct
 
 _IOC_NRBITS = 8
 _IOC_TYPEBITS = 8
@@ -66,9 +68,16 @@ def IOC_TYPECHECK(t):
     Returns the size of given type, and check its suitability for use in an
     ioctl command number.
     """
-    result = ctypes.sizeof(t)
-    assert result <= _IOC_SIZEMASK, result
-    return result
+    if isinstance(t, (memoryview, bytearray)):
+        size = len(t)
+    elif isinstance(t, struct.Struct):
+        size = t.size
+    elif isinstance(t, array.array):
+        size = t.itemsize * len(t)
+    else:
+        size = ctypes.sizeof(t)
+    assert size <= _IOC_SIZEMASK, size
+    return size
 
 def IO(type, nr):
     """
