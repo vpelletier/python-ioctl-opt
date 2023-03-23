@@ -8,7 +8,7 @@ For example, starting from the following IOCTL declaration (taken from ``input.h
 
   #include <sys/ioctl.h>
   #define EVIOCGNAME(len) _IOC(_IOC_READ, 'E', 0x06, len) /* get device name */
-  
+
 you could write the following:
 
 .. code:: python
@@ -23,13 +23,23 @@ The differences are minimal, and all come from python language or coding style:
 - ``IOC``'s ``nr`` argument has to be an integer, so C's single-quote char becomes an ``ord`` call
 - avoid shadowing built-in ``len`` function
 
+The ``length`` argument is an object (typically serving as an I/O buffer with the ``fcntl.ioctl()``
+call), the size of which is incorporated in the generated ioctl ``opt`` value.  ``IOC()`` will
+calculate the size of the object.  Supported object types are:
+
+- any ``ctypes`` type or instance
+- ``memoryview``
+- ``bytearray``
+- ``struct.Struct``
+- ``array.array``
+
 You may want to then write a pythonic function to conveniently access that ioctl:
 
 .. code:: python
 
   import ctypes
   import fcntl
-  
+
   def getDeviceName(fd, length=1024):
       name = (ctypes.c_char * length)()
       actual_length = fcntl.ioctl(fd, EVIOCGNAME(length), name, True)

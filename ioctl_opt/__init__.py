@@ -89,7 +89,7 @@ def IOR(type, nr, size):
     """
     An ioctl with read parameters.
 
-    size (ctype type or instance)
+    size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
     """
     return IOC(IOC_READ, type, nr, IOC_TYPECHECK(size))
@@ -98,7 +98,7 @@ def IOW(type, nr, size):
     """
     An ioctl with write parameters.
 
-    size (ctype type or instance)
+    size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
     """
     return IOC(IOC_WRITE, type, nr, IOC_TYPECHECK(size))
@@ -107,7 +107,7 @@ def IOWR(type, nr, size):
     """
     An ioctl with both read an writes parameters.
 
-    size (ctype type or instance)
+    size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
     """
     return IOC(IOC_READ | IOC_WRITE, type, nr, IOC_TYPECHECK(size))
