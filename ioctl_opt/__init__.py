@@ -26,7 +26,9 @@ Common parameter meanings:
     nr (8-bits unsigned integer)
         Driver-imposed ioctl function number.
 """
+import array
 import ctypes
+import struct
 
 _IOC_NRBITS = 8
 _IOC_TYPEBITS = 8
@@ -66,9 +68,16 @@ def IOC_TYPECHECK(t):
     Returns the size of given type, and check its suitability for use in an
     ioctl command number.
     """
-    result = ctypes.sizeof(t)
-    assert result <= _IOC_SIZEMASK, result
-    return result
+    if isinstance(t, (memoryview, bytearray)):
+        size = len(t)
+    elif isinstance(t, struct.Struct):
+        size = t.size
+    elif isinstance(t, array.array):
+        size = t.itemsize * len(t)
+    else:
+        size = ctypes.sizeof(t)
+    assert size <= _IOC_SIZEMASK, size
+    return size
 
 def IO(type, nr):
     """
@@ -80,7 +89,7 @@ def IOR(type, nr, size):
     """
     An ioctl with read parameters.
 
-    size (ctype type or instance)
+    size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
     """
     return IOC(IOC_READ, type, nr, IOC_TYPECHECK(size))
@@ -89,7 +98,7 @@ def IOW(type, nr, size):
     """
     An ioctl with write parameters.
 
-    size (ctype type or instance)
+    size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
     """
     return IOC(IOC_WRITE, type, nr, IOC_TYPECHECK(size))
@@ -98,7 +107,7 @@ def IOWR(type, nr, size):
     """
     An ioctl with both read an writes parameters.
 
-    size (ctype type or instance)
+    size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
     """
     return IOC(IOC_READ | IOC_WRITE, type, nr, IOC_TYPECHECK(size))
