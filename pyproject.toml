@@ -14,7 +14,6 @@
 		"Programming Language :: Python :: 3",
 		"Typing :: Typed",
 	]
-	dynamic = ["dependencies"]
 
 [project.urls]
 	Homepage = "https://github.com/vpelletier/python-ioctl-opt"
