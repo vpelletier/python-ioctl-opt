@@ -49,6 +49,12 @@ IOC_NONE = 0
 IOC_WRITE = 1
 IOC_READ = 2
 
+IOC_IN = IOC_WRITE << _IOC_DIRSHIFT
+IOC_OUT = IOC_READ << _IOC_DIRSHIFT
+IOC_INOUT = (IOC_WRITE | IOC_READ) << _IOC_DIRSHIFT
+IOCSIZE_MASK = _IOC_SIZEMASK << _IOC_SIZESHIFT
+IOCSIZE_SHIFT = _IOC_SIZESHIFT
+
 def IOC(dir, type, nr, size):
     """
     dir
@@ -135,12 +141,6 @@ def IOC_SIZE(nr):
     Extract size from an ioctl command number.
     """
     return (nr >> _IOC_SIZESHIFT) & _IOC_SIZEMASK
-
-IOC_IN = IOC_WRITE << _IOC_DIRSHIFT
-IOC_OUT = IOC_READ << _IOC_DIRSHIFT
-IOC_INOUT = (IOC_WRITE | IOC_READ) << _IOC_DIRSHIFT
-IOCSIZE_MASK = _IOC_SIZEMASK << _IOC_SIZESHIFT
-IOCSIZE_SHIFT = _IOC_SIZESHIFT
 
 if __name__ == '__main__':
     print('Sanity checks...')
