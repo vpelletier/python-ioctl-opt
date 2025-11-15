@@ -13,8 +13,7 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-"""
-Pythonified linux asm-generic/ioctl.h .
+"""Pythonified linux asm-generic/ioctl.h
 
 Produce IOCTL command numbers from their individual components, simplifying
 C header conversion to python (keeping magic constants and differences to
@@ -29,27 +28,34 @@ Common parameter meanings:
 import array
 import ctypes
 import struct
+from typing import Final
 
-_IOC_NRBITS = 8
-_IOC_TYPEBITS = 8
-_IOC_SIZEBITS = 14
-_IOC_DIRBITS = 2
+_IOC_NRBITS: Final[int] = 8
+_IOC_TYPEBITS: Final[int] = 8
+_IOC_SIZEBITS: Final[int] = 14
+_IOC_DIRBITS: Final[int] = 2
 
-_IOC_NRMASK = (1 << _IOC_NRBITS) - 1
-_IOC_TYPEMASK = (1 << _IOC_TYPEBITS) - 1
-_IOC_SIZEMASK = (1 << _IOC_SIZEBITS) - 1
-_IOC_DIRMASK = (1 << _IOC_DIRBITS) - 1
+_IOC_NRMASK: Final[int] = (1 << _IOC_NRBITS) - 1
+_IOC_TYPEMASK: Final[int] = (1 << _IOC_TYPEBITS) - 1
+_IOC_SIZEMASK: Final[int] = (1 << _IOC_SIZEBITS) - 1
+_IOC_DIRMASK: Final[int] = (1 << _IOC_DIRBITS) - 1
 
-_IOC_NRSHIFT = 0
-_IOC_TYPESHIFT = _IOC_NRSHIFT + _IOC_NRBITS
-_IOC_SIZESHIFT = _IOC_TYPESHIFT + _IOC_TYPEBITS
-_IOC_DIRSHIFT = _IOC_SIZESHIFT + _IOC_SIZEBITS
+_IOC_NRSHIFT: Final[int] = 0
+_IOC_TYPESHIFT: Final[int] = _IOC_NRSHIFT + _IOC_NRBITS
+_IOC_SIZESHIFT: Final[int] = _IOC_TYPESHIFT + _IOC_TYPEBITS
+_IOC_DIRSHIFT: Final[int] = _IOC_SIZESHIFT + _IOC_SIZEBITS
 
-IOC_NONE = 0
-IOC_WRITE = 1
-IOC_READ = 2
+IOC_NONE: Final[int] = 0
+IOC_WRITE: Final[int] = 1
+IOC_READ: Final[int] = 2
 
-def IOC(dir, type, nr, size):
+IOC_IN: Final[int] = IOC_WRITE << _IOC_DIRSHIFT
+IOC_OUT: Final[int] = IOC_READ << _IOC_DIRSHIFT
+IOC_INOUT: Final[int] = (IOC_WRITE | IOC_READ) << _IOC_DIRSHIFT
+IOCSIZE_MASK: Final[int] = _IOC_SIZEMASK << _IOC_SIZESHIFT
+IOCSIZE_SHIFT: Final[int] = _IOC_SIZESHIFT
+
+def IOC(dir: int, type: int, nr: int, size) -> int:
     """
     dir
         One of IOC_NONE, IOC_WRITE, IOC_READ, or IOC_READ|IOC_WRITE.
@@ -63,11 +69,8 @@ def IOC(dir, type, nr, size):
     assert size <= _IOC_SIZEMASK, size
     return (dir << _IOC_DIRSHIFT) | (type << _IOC_TYPESHIFT) | (nr << _IOC_NRSHIFT) | (size << _IOC_SIZESHIFT)
 
-def IOC_TYPECHECK(t):
-    """
-    Returns the size of given type, and check its suitability for use in an
-    ioctl command number.
-    """
+def IOC_TYPECHECK(t) -> int:
+    """Returns the size of given type, and check its suitability for use in an ioctl command number."""
     if isinstance(t, (memoryview, bytearray)):
         size = len(t)
     elif isinstance(t, struct.Struct):
@@ -79,68 +82,49 @@ def IOC_TYPECHECK(t):
     assert size <= _IOC_SIZEMASK, size
     return size
 
-def IO(type, nr):
-    """
-    An ioctl with no parameters.
-    """
+def IO(type: int, nr: int) -> int:
+    """An ioctl with no parameters."""
     return IOC(IOC_NONE, type, nr, 0)
 
-def IOR(type, nr, size):
-    """
-    An ioctl with read parameters.
+def IOR(type: int, nr: int, size) -> int:
+    """An ioctl with read parameters.
 
     size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
     """
     return IOC(IOC_READ, type, nr, IOC_TYPECHECK(size))
 
-def IOW(type, nr, size):
-    """
-    An ioctl with write parameters.
+def IOW(type: int, nr: int, size) -> int:
+    """An ioctl with write parameters.
 
     size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
     """
     return IOC(IOC_WRITE, type, nr, IOC_TYPECHECK(size))
 
-def IOWR(type, nr, size):
-    """
-    An ioctl with both read an writes parameters.
+def IOWR(type: int, nr: int, size) -> int:
+    """An ioctl with both read an writes parameters.
 
     size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
     """
     return IOC(IOC_READ | IOC_WRITE, type, nr, IOC_TYPECHECK(size))
 
-def IOC_DIR(nr):
-    """
-    Extract direction from an ioctl command number.
-    """
+def IOC_DIR(nr: int) -> int:
+    """Extract direction from an ioctl command number."""
     return (nr >> _IOC_DIRSHIFT) & _IOC_DIRMASK
 
-def IOC_TYPE(nr):
-    """
-    Extract type from an ioctl command number.
-    """
+def IOC_TYPE(nr: int) -> int:
+    """Extract type from an ioctl command number."""
     return (nr >> _IOC_TYPESHIFT) & _IOC_TYPEMASK
 
-def IOC_NR(nr):
-    """
-    Extract nr from an ioctl command number.
-    """
+def IOC_NR(nr: int) -> int:
+    """Extract nr from an ioctl command number."""
     return (nr >> _IOC_NRSHIFT) & _IOC_NRMASK
 
-def IOC_SIZE(nr):
-    """
-    Extract size from an ioctl command number.
-    """
+def IOC_SIZE(nr: int) -> int:
+    """Extract size from an ioctl command number."""
     return (nr >> _IOC_SIZESHIFT) & _IOC_SIZEMASK
-
-IOC_IN = IOC_WRITE << _IOC_DIRSHIFT
-IOC_OUT = IOC_READ << _IOC_DIRSHIFT
-IOC_INOUT = (IOC_WRITE | IOC_READ) << _IOC_DIRSHIFT
-IOCSIZE_MASK = _IOC_SIZEMASK << _IOC_SIZESHIFT
-IOCSIZE_SHIFT = _IOC_SIZESHIFT
 
 if __name__ == '__main__':
     print('Sanity checks...')
