@@ -13,8 +13,7 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-"""
-Pythonified linux asm-generic/ioctl.h .
+"""Pythonified linux asm-generic/ioctl.h
 
 Produce IOCTL command numbers from their individual components, simplifying
 C header conversion to python (keeping magic constants and differences to
@@ -57,7 +56,10 @@ IOCSIZE_MASK: Final[int] = _IOC_SIZEMASK << _IOC_SIZESHIFT
 IOCSIZE_SHIFT: Final[int] = _IOC_SIZESHIFT
 
 def IOC(dir: int, type: int, nr: int, size) -> int:
-    """
+    """Produce IOCTL command number from raw components.
+
+    Consider using IO, IOR, IOW or IORW.
+
     dir
         One of IOC_NONE, IOC_WRITE, IOC_READ, or IOC_READ|IOC_WRITE.
         Direction is from the application's point of view, not kernel's.
@@ -71,10 +73,7 @@ def IOC(dir: int, type: int, nr: int, size) -> int:
     return (dir << _IOC_DIRSHIFT) | (type << _IOC_TYPESHIFT) | (nr << _IOC_NRSHIFT) | (size << _IOC_SIZESHIFT)
 
 def IOC_TYPECHECK(t) -> int:
-    """
-    Returns the size of given type, and check its suitability for use in an
-    ioctl command number.
-    """
+    """Returns the size of given type, and check its suitability for use in an ioctl command number."""
     if isinstance(t, (memoryview, bytearray)):
         size = len(t)
     elif isinstance(t, struct.Struct):
@@ -87,14 +86,11 @@ def IOC_TYPECHECK(t) -> int:
     return size
 
 def IO(type: int, nr: int) -> int:
-    """
-    An ioctl with no parameters.
-    """
+    """An ioctl with no parameters."""
     return IOC(IOC_NONE, type, nr, 0)
 
 def IOR(type: int, nr: int, size) -> int:
-    """
-    An ioctl with read parameters.
+    """An ioctl with read parameters.
 
     size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
@@ -102,8 +98,7 @@ def IOR(type: int, nr: int, size) -> int:
     return IOC(IOC_READ, type, nr, IOC_TYPECHECK(size))
 
 def IOW(type: int, nr: int, size) -> int:
-    """
-    An ioctl with write parameters.
+    """An ioctl with write parameters.
 
     size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
@@ -111,8 +106,7 @@ def IOW(type: int, nr: int, size) -> int:
     return IOC(IOC_WRITE, type, nr, IOC_TYPECHECK(size))
 
 def IOWR(type: int, nr: int, size) -> int:
-    """
-    An ioctl with both read an writes parameters.
+    """An ioctl with both read an writes parameters.
 
     size (ctype type or instance, memoryview, bytearray, struct.Struct, or array.array)
         Type/structure of the argument passed to ioctl's "arg" argument.
@@ -120,27 +114,19 @@ def IOWR(type: int, nr: int, size) -> int:
     return IOC(IOC_READ | IOC_WRITE, type, nr, IOC_TYPECHECK(size))
 
 def IOC_DIR(nr: int) -> int:
-    """
-    Extract direction from an ioctl command number.
-    """
+    """Extract direction from an ioctl command number."""
     return (nr >> _IOC_DIRSHIFT) & _IOC_DIRMASK
 
 def IOC_TYPE(nr: int) -> int:
-    """
-    Extract type from an ioctl command number.
-    """
+    """Extract type from an ioctl command number."""
     return (nr >> _IOC_TYPESHIFT) & _IOC_TYPEMASK
 
 def IOC_NR(nr: int) -> int:
-    """
-    Extract nr from an ioctl command number.
-    """
+    """Extract nr from an ioctl command number."""
     return (nr >> _IOC_NRSHIFT) & _IOC_NRMASK
 
 def IOC_SIZE(nr: int) -> int:
-    """
-    Extract size from an ioctl command number.
-    """
+    """Extract size from an ioctl command number."""
     return (nr >> _IOC_SIZESHIFT) & _IOC_SIZEMASK
 
 if __name__ == '__main__':
