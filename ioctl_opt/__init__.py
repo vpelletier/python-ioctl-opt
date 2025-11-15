@@ -25,7 +25,6 @@ Common parameter meanings:
     nr (8-bits unsigned integer)
         Driver-imposed ioctl function number.
 """
-from __future__ import annotations
 import array
 import ctypes
 import struct
