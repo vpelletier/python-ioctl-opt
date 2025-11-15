@@ -29,7 +29,6 @@ from __future__ import annotations
 import array
 import ctypes
 import struct
-
 from typing import Final
 
 _IOC_NRBITS: Final[int] = 8
