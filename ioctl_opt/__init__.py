@@ -25,9 +25,8 @@ Common parameter meanings:
     nr (8-bits unsigned integer)
         Driver-imposed ioctl function number.
 """
-import array
 import ctypes
-import struct
+from collections.abc import Buffer
 from typing import Final
 
 _IOC_NRBITS: Final[int] = 8
@@ -56,7 +55,8 @@ IOCSIZE_MASK: Final[int] = _IOC_SIZEMASK << _IOC_SIZESHIFT
 IOCSIZE_SHIFT: Final[int] = _IOC_SIZESHIFT
 
 def IOC(dir: int, type: int, nr: int, size) -> int:
-    """
+    """Produce IOCTL command number from raw components.
+
     dir
         One of IOC_NONE, IOC_WRITE, IOC_READ, or IOC_READ|IOC_WRITE.
         Direction is from the application's point of view, not kernel's.
@@ -69,14 +69,11 @@ def IOC(dir: int, type: int, nr: int, size) -> int:
     assert size <= _IOC_SIZEMASK, size
     return (dir << _IOC_DIRSHIFT) | (type << _IOC_TYPESHIFT) | (nr << _IOC_NRSHIFT) | (size << _IOC_SIZESHIFT)
 
-def IOC_TYPECHECK(t) -> int:
+def IOC_TYPECHECK(t: Buffer | ctypes._CData | type[ctypes._CData]) -> int:
     """Returns the size of given type, and check its suitability for use in an ioctl command number."""
-    if isinstance(t, (memoryview, bytearray)):
-        size = len(t)
-    elif isinstance(t, struct.Struct):
-        size = t.size
-    elif isinstance(t, array.array):
-        size = t.itemsize * len(t)
+    if isinstance(t, Buffer):
+        with memoryview(t) as t_view:
+            size = t_view.nbytes
     else:
         size = ctypes.sizeof(t)
     assert size <= _IOC_SIZEMASK, size
