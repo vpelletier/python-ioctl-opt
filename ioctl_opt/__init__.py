@@ -57,6 +57,8 @@ IOCSIZE_SHIFT: Final[int] = _IOC_SIZESHIFT
 def IOC(dir: int, type: int, nr: int, size) -> int:
     """Produce IOCTL command number from raw components.
 
+    Consider using IO, IOR, IOW or IORW.
+
     dir
         One of IOC_NONE, IOC_WRITE, IOC_READ, or IOC_READ|IOC_WRITE.
         Direction is from the application's point of view, not kernel's.
