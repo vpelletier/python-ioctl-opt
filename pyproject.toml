@@ -1,6 +1,6 @@
 [project]
 	name = "ioctl-opt"
-	version = "1.3"
+	version = "1.3.1"
 	description = "Functions to compute fnctl.ioctl's opt argument"
 	readme = "README.rst"
 	authors = [{name = "Vincent Pelletier", email = "plr.vincent@gmail.com"}]
