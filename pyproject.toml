@@ -4,7 +4,7 @@
 	description = "Functions to compute fnctl.ioctl's opt argument"
 	readme = "README.rst"
 	authors = [{name = "Vincent Pelletier", email = "plr.vincent@gmail.com"}]
-	license = { text = "GPL-2.0-or-later" }
+	license = { text = "LGPL-2.0-or-later" }
 	keywords = ["ioctl"]
 	requires-python = ">=3.10"
 	classifiers = [
